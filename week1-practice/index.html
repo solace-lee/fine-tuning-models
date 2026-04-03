@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week1 - TensorFlow.js 工具链入门</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Week1: JavaScript 深度学习工具链入门</h1>
+      <p>GTX1050 2G 显存环境下的 TensorFlow.js 实战</p>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2>WebGPU 支持检测</h2>
+        <div id="webgpu-status">
+          <p>检测中...</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>后端切换</h2>
+        <div id="backend-selector">
+          <div class="input-group">
+            <select id="backend-select">
+              <option value="webgpu">WebGPU (推荐)</option>
+              <option value="webgl">WebGL</option>
+              <option value="wasm">WebAssembly</option>
+              <option value="cpu">CPU</option>
+            </select>
+          </div>
+          <button id="switch-backend" class="btn btn-primary">切换后端</button>
+          <p id="current-backend" style="margin-top: 0.5rem;"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>显存监控面板</h2>
+      <div id="memory-monitor"></div>
+    </div>
+
+    <div class="card">
+      <h2>实战 Demo 导航</h2>
+      <div class="nav-links">
+        <a href="/linear-regression.html">线性回归 Hello World</a>
+        <a href="/transformers-demo.html">DistilBERT 文本分类</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
