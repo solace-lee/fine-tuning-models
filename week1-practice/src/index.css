@@ -26,6 +26,10 @@ body {
   min-height: 100vh;
 }
 
+#root {
+  min-height: 100vh;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -230,7 +234,8 @@ header p {
   margin-top: 1rem;
 }
 
-.nav-links a {
+.nav-links a,
+.nav-link-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -241,9 +246,12 @@ header p {
   color: var(--text-primary);
   text-decoration: none;
   transition: all 0.2s;
+  cursor: pointer;
+  font-size: 0.875rem;
 }
 
-.nav-links a:hover {
+.nav-links a:hover,
+.nav-link-btn:hover {
   border-color: var(--accent);
   background: rgba(59, 130, 246, 0.1);
 }
