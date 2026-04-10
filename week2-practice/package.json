@@ -1,0 +1,23 @@
+{
+  "name": "week2-lora-practice",
+  "version": "1.0.0",
+  "description": "Week2: LoRA技术在JavaScript中的实现",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.3.2",
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-backend-webgpu": "^4.22.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
