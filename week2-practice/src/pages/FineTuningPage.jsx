@@ -39,7 +39,7 @@ export default function FineTuningPage() {
   // Simple text to feature (bag of words)
   const textToFeatures = useCallback((text) => {
     const words = text.toLowerCase().split(' ');
-    const features = new Array(20).fill(0);
+    const features = new Array(20).fill(0.0);
     const wordMap = {
       'good': 0, 'great': 1, 'excellent': 2, 'amazing': 3, 'wonderful': 4,
       'love': 5, 'best': 6, 'perfect': 7, 'fantastic': 8, 'happy': 9,
@@ -48,7 +48,7 @@ export default function FineTuningPage() {
     };
     words.forEach(word => {
       if (wordMap[word] !== undefined) {
-        features[wordMap[word]] = 1;
+        features[wordMap[word]] = 1.0;
       }
     });
     return features;
@@ -124,6 +124,9 @@ export default function FineTuningPage() {
       await tf.ready();
       addLog('WebGPU backend ready');
       
+      // Store tf for later use in training
+      window.tf = tf;
+      
       // Simulate loading pretrained model
       await new Promise(r => setTimeout(r, 1000));
       addLog('Loading base model (simulated)...');
@@ -167,18 +170,15 @@ export default function FineTuningPage() {
     addLog('Dataset: 500 samples (250 positive, 250 negative)');
     addLog(`LoRA config: rank=${loraConfig.rank}, alpha=${loraConfig.alpha}, dropout=${loraConfig.dropout}`);
     
-    const tf = window.tfModel;
+    const tf = window.tf;
     const dataset = generateDataset();
     const features = dataset.map(d => textToFeatures(d.text));
     const labels = dataset.map(d => d.label);
     
-    const optimizer = tf.train.adam(0.001);
-    const lossFn = (pred, label) => tf.losses.sparseCategoricalCrossentropy(label, pred);
-    
     // Create LoRA-like trainable layers (simulated as additional trainable dense layers)
-    const loraLayer1 = tf.layers.dense({ units: loraConfig.rank, inputShape: [20], activation: 'relu' });
-    const loraLayer2 = tf.layers.dense({ units: loraConfig.rank, inputShape: [loraConfig.rank], activation: 'relu' });
-    const loraOut = tf.layers.dense({ units: 2, activation: 'softmax' });
+    const loraLayer1 = tf.layers.dense({ units: loraConfig.rank, inputShape: [20], activation: 'relu', dtype: 'float32' });
+    const loraLayer2 = tf.layers.dense({ units: loraConfig.rank, inputShape: [loraConfig.rank], activation: 'relu', dtype: 'float32' });
+    const loraOut = tf.layers.dense({ units: 2, activation: 'softmax', dtype: 'float32' });
     
   const tempModel = tf.sequential({
     layers: [
@@ -190,7 +190,7 @@ export default function FineTuningPage() {
   
   tempModel.compile({
     optimizer: 'adam',
-    loss: 'sparseCategoricalCrossentropy',
+    loss: 'categoricalCrossentropy',
     metrics: ['accuracy']
   });
     
@@ -204,22 +204,28 @@ export default function FineTuningPage() {
       let correct = 0;
       
       for (let i = 0; i < features.length; i += batchSize) {
-        const batchIndices = indices.slice(i, i + batchSize);
-        const batchX = tf.tensor2d(batchIndices.map(j => features[j]));
-        const batchY = tf.tensor1d(batchIndices.map(j => labels[j]));
+        const endIndex = Math.min(i + batchSize, features.length);
+        const batchFeatures = features.slice(i, endIndex);
+        const batchLabels = labels.slice(i, endIndex);
+        const batchLabelsOneHot = batchLabels.map(l => l === 1 ? [0, 1] : [1, 0]);
+        
+        const batchX = tf.tensor2d(batchFeatures, [batchFeatures.length, 20], 'float32');
+        const batchY = tf.tensor2d(batchLabelsOneHot, [batchLabelsOneHot.length, 2], 'float32');
         
         const result = await tempModel.trainOnBatch(batchX, batchY);
         totalLoss += result[0];
         
         const preds = tempModel.predict(batchX);
         const predLabels = preds.argMax(1);
-        const correctBatch = predLabels.equal(tf.tensor1d(batchIndices.map(j => labels[j]))).sum().dataSync()[0];
+        const actualLabels = tf.tensor1d(batchLabels, 'int32');
+        const correctBatch = predLabels.equal(actualLabels).sum().dataSync()[0];
         correct += correctBatch;
         
         batchX.dispose();
         batchY.dispose();
         preds.dispose();
         predLabels.dispose();
+        actualLabels.dispose();
         
         // Memory check
         const mem = tf.memory();
